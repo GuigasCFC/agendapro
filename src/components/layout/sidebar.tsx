@@ -59,7 +59,11 @@ const menuItems = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  organizationName: string;
+}
+
+export function Sidebar({ organizationName }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -70,7 +74,7 @@ export function Sidebar() {
         </h1>
 
         <p className="mt-1 text-sm text-muted-foreground">
-          Business Management
+          {organizationName}
         </p>
       </div>
 

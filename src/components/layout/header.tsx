@@ -2,10 +2,25 @@
 
 import { Bell, Moon, Search, Sun } from "lucide-react";
 
+import type { MembershipRole } from "@/lib/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function Header() {
+const ROLE_LABELS: Record<MembershipRole, string> = {
+  OWNER: "Proprietário",
+  ADMIN: "Administrador",
+  MEMBER: "Usuário",
+};
+
+interface HeaderProps {
+  userName: string;
+  userEmail: string;
+  role: MembershipRole;
+}
+
+export function Header({ userName, userEmail, role }: HeaderProps) {
+  const initial = userName.charAt(0).toUpperCase();
+
   return (
     <header className="flex h-16 items-center justify-between border-b bg-background px-6">
       <div className="flex items-center gap-4">
@@ -35,15 +50,18 @@ export function Header() {
           <Sun className="hidden h-5 w-5 dark:block" />
         </Button>
 
-        <div className="flex items-center gap-3 rounded-lg border px-3 py-2">
+        <div
+          className="flex items-center gap-3 rounded-lg border px-3 py-2"
+          title={userEmail}
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
-            G
+            {initial}
           </div>
 
           <div className="hidden text-sm md:block">
-            <p className="font-medium">Guilherme</p>
+            <p className="font-medium">{userName}</p>
             <p className="text-xs text-muted-foreground">
-              Administrator
+              {ROLE_LABELS[role]}
             </p>
           </div>
         </div>
