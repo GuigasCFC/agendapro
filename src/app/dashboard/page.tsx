@@ -63,7 +63,7 @@ export default function DashboardPage() {
         </h1>
 
         <p className="text-muted-foreground">
-          Welcome back! Here's an overview of your business.
+          Welcome back! Here&apos;s an overview of your business.
         </p>
       </div>
 
