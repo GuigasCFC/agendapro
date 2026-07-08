@@ -1,8 +1,9 @@
 "use client";
 
-import { Bell, Moon, Search, Sun } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Sun } from "lucide-react";
 
 import type { MembershipRole } from "@/lib/generated/prisma/client";
+import { logout } from "@/features/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -65,6 +66,12 @@ export function Header({ userName, userEmail, role }: HeaderProps) {
             </p>
           </div>
         </div>
+
+        <form action={logout}>
+          <Button variant="ghost" size="icon" type="submit" title="Sair">
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </form>
       </div>
     </header>
   );
