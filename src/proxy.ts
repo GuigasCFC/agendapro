@@ -35,11 +35,15 @@ export async function proxy(request: NextRequest) {
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
 
   if (!user && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
+    return redirectResponse
   }
 
   if (user && isPublicRoute) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url))
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
+    return redirectResponse
   }
 
   return response
