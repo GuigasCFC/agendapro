@@ -1,10 +1,18 @@
 import { db } from "@/lib/db"
+import { Prisma } from "@/lib/generated/prisma/client"
+import { assertWithinLimit } from "@/features/subscriptions/services"
 import type { CreateAppointmentInput, UpdateAppointmentInput } from "./schemas"
+
+type DbClient = typeof db | Prisma.TransactionClient
 
 export function listAppointments(organizationId: string) {
   return db.appointment.findMany({
     where: { organizationId },
-    include: { customer: true, service: true, employee: true },
+    include: {
+      customer: { select: { name: true } },
+      service: { select: { name: true } },
+      employee: { select: { name: true } },
+    },
     orderBy: { startsAt: "desc" },
   })
 }
@@ -29,6 +37,10 @@ async function resolveSchedule(
     throw new Error("Serviço não encontrado.")
   }
 
+  if (!service.active) {
+    throw new Error("Este serviço está inativo.")
+  }
+
   const startsAt = new Date(`${date}T${time}`)
   const endsAt = new Date(startsAt.getTime() + service.durationMin * 60_000)
 
@@ -48,12 +60,50 @@ async function assertRelatedEntitiesBelongToOrg(
   if (!customer || !employee) {
     throw new Error("Cliente ou funcionário não encontrado.")
   }
+
+  if (!employee.active) {
+    throw new Error("Este funcionário está inativo.")
+  }
 }
+
+// Impede dois agendamentos sobrepostos para o mesmo funcionário.
+// Agendamentos cancelados liberam o horário de volta.
+async function assertNoScheduleConflict(
+  client: DbClient,
+  organizationId: string,
+  employeeId: string,
+  startsAt: Date,
+  endsAt: Date,
+  excludeAppointmentId?: string
+) {
+  const conflict = await client.appointment.findFirst({
+    where: {
+      organizationId,
+      employeeId,
+      status: { not: "CANCELED" },
+      ...(excludeAppointmentId && { id: { not: excludeAppointmentId } }),
+      startsAt: { lt: endsAt },
+      endsAt: { gt: startsAt },
+    },
+  })
+
+  if (conflict) {
+    throw new Error("Este funcionário já possui outro agendamento nesse horário.")
+  }
+}
+
+function isSerializationConflict(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
+}
+
+const SCHEDULE_CONFLICT_MESSAGE = "Este funcionário já possui outro agendamento nesse horário."
 
 export async function createAppointment(
   data: CreateAppointmentInput,
   organizationId: string
 ) {
+  await assertWithinLimit(organizationId, "appointmentsPerMonth")
+
   await assertRelatedEntitiesBelongToOrg(
     organizationId,
     data.customerId,
@@ -67,18 +117,32 @@ export async function createAppointment(
     data.time
   )
 
-  return db.appointment.create({
-    data: {
-      organizationId,
-      customerId: data.customerId,
-      serviceId: data.serviceId,
-      employeeId: data.employeeId,
-      startsAt,
-      endsAt,
-      status: data.status,
-      notes: data.notes || null,
-    },
-  })
+  try {
+    return await db.$transaction(
+      async (tx) => {
+        await assertNoScheduleConflict(tx, organizationId, data.employeeId, startsAt, endsAt)
+
+        return tx.appointment.create({
+          data: {
+            organizationId,
+            customerId: data.customerId,
+            serviceId: data.serviceId,
+            employeeId: data.employeeId,
+            startsAt,
+            endsAt,
+            status: data.status,
+            notes: data.notes || null,
+          },
+        })
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    )
+  } catch (error) {
+    if (isSerializationConflict(error)) {
+      throw new Error(SCHEDULE_CONFLICT_MESSAGE)
+    }
+    throw error
+  }
 }
 
 export async function updateAppointment(
@@ -99,18 +163,35 @@ export async function updateAppointment(
     data.time
   )
 
-  const { count } = await db.appointment.updateMany({
-    where: { id, organizationId },
-    data: {
-      customerId: data.customerId,
-      serviceId: data.serviceId,
-      employeeId: data.employeeId,
-      startsAt,
-      endsAt,
-      status: data.status,
-      notes: data.notes || null,
-    },
-  })
+  let count: number
+  try {
+    count = await db.$transaction(
+      async (tx) => {
+        await assertNoScheduleConflict(tx, organizationId, data.employeeId, startsAt, endsAt, id)
+
+        const result = await tx.appointment.updateMany({
+          where: { id, organizationId },
+          data: {
+            customerId: data.customerId,
+            serviceId: data.serviceId,
+            employeeId: data.employeeId,
+            startsAt,
+            endsAt,
+            status: data.status,
+            notes: data.notes || null,
+          },
+        })
+
+        return result.count
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    )
+  } catch (error) {
+    if (isSerializationConflict(error)) {
+      throw new Error(SCHEDULE_CONFLICT_MESSAGE)
+    }
+    throw error
+  }
 
   if (count === 0) {
     throw new Error("Agendamento não encontrado.")

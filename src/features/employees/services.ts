@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { assertWithinLimit } from "@/features/subscriptions/services"
 import type { CreateEmployeeInput, UpdateEmployeeInput } from "./schemas"
 
 export function listEmployees(organizationId: string) {
@@ -14,7 +15,12 @@ export function getEmployee(id: string, organizationId: string) {
   })
 }
 
-export function createEmployee(data: CreateEmployeeInput, organizationId: string) {
+export async function createEmployee(
+  data: CreateEmployeeInput,
+  organizationId: string
+) {
+  await assertWithinLimit(organizationId, "employees")
+
   return db.employee.create({
     data: {
       organizationId,

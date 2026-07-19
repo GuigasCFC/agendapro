@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { getActiveMembership } from "@/lib/auth/dal"
+import { requireRole } from "@/lib/auth/authorize"
+import { Prisma } from "@/lib/generated/prisma/client"
 import { createServiceSchema, updateServiceSchema } from "./schemas"
 import * as servicesService from "./services"
 
@@ -31,7 +33,16 @@ export async function createService(
     return { errors: validated.error.flatten().fieldErrors }
   }
 
-  await servicesService.createService(membership.organizationId, validated.data)
+  try {
+    await servicesService.createService(membership.organizationId, validated.data)
+  } catch (error) {
+    return {
+      message:
+        error instanceof Error
+          ? error.message
+          : "Não foi possível criar o serviço.",
+    }
+  }
 
   revalidatePath("/services")
   redirect("/services")
@@ -71,10 +82,19 @@ export async function updateService(
 }
 
 export async function deleteService(id: string) {
-  const membership = await getActiveMembership()
-  if (!membership) redirect("/login")
+  const membership = await requireRole("ADMIN")
 
-  await servicesService.deleteService(id, membership.organizationId)
+  try {
+    await servicesService.deleteService(id, membership.organizationId)
+  } catch (error) {
+    // Serviço com agendamentos vinculados: a FK impede o delete. Evita
+    // quebrar a tela com um erro de banco não tratado.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+      revalidatePath("/services")
+      return
+    }
+    throw error
+  }
 
   revalidatePath("/services")
 }

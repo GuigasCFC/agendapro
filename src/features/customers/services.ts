@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { assertWithinLimit } from "@/features/subscriptions/services"
 import type { CreateCustomerInput, UpdateCustomerInput } from "./schemas"
 
 export function listCustomers(organizationId: string) {
@@ -14,7 +15,12 @@ export function getCustomer(organizationId: string, id: string) {
   })
 }
 
-export function createCustomer(organizationId: string, input: CreateCustomerInput) {
+export async function createCustomer(
+  organizationId: string,
+  input: CreateCustomerInput
+) {
+  await assertWithinLimit(organizationId, "customers")
+
   return db.customer.create({
     data: {
       organizationId,

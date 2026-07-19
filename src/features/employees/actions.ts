@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { getActiveMembership } from "@/lib/auth/dal"
+import { requireRole } from "@/lib/auth/authorize"
+import { Prisma } from "@/lib/generated/prisma/client"
 import { createEmployeeSchema, updateEmployeeSchema } from "./schemas"
 import * as employeesService from "./services"
 
@@ -30,7 +32,16 @@ export async function createEmployee(
     return { errors: validated.error.flatten().fieldErrors }
   }
 
-  await employeesService.createEmployee(validated.data, membership.organizationId)
+  try {
+    await employeesService.createEmployee(validated.data, membership.organizationId)
+  } catch (error) {
+    return {
+      message:
+        error instanceof Error
+          ? error.message
+          : "Não foi possível criar o funcionário.",
+    }
+  }
 
   revalidatePath("/employees")
   redirect("/employees")
@@ -69,10 +80,19 @@ export async function updateEmployee(
 }
 
 export async function deleteEmployee(id: string) {
-  const membership = await getActiveMembership()
-  if (!membership) redirect("/login")
+  const membership = await requireRole("ADMIN")
 
-  await employeesService.deleteEmployee(id, membership.organizationId)
+  try {
+    await employeesService.deleteEmployee(id, membership.organizationId)
+  } catch (error) {
+    // Funcionário com agendamentos vinculados: a FK impede o delete. Evita
+    // quebrar a tela com um erro de banco não tratado.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+      revalidatePath("/employees")
+      return
+    }
+    throw error
+  }
 
   revalidatePath("/employees")
 }
