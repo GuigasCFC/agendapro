@@ -4,7 +4,7 @@ import type { CreateTransactionInput, UpdateTransactionInput } from "./schemas"
 export function listTransactions(organizationId: string) {
   return db.transaction.findMany({
     where: { organizationId },
-    include: { customer: true, appointment: true },
+    include: { customer: { select: { name: true } } },
     orderBy: { occurredAt: "desc" },
   })
 }

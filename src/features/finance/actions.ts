@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { getActiveMembership } from "@/lib/auth/dal"
+import { requireRole } from "@/lib/auth/authorize"
 import { createTransactionSchema, updateTransactionSchema } from "./schemas"
 import * as financeService from "./services"
+import * as notificationsService from "@/features/notifications/services"
 
 export type TransactionFormState =
   | {
@@ -38,8 +40,9 @@ export async function createTransaction(
     return { errors: validated.error.flatten().fieldErrors }
   }
 
+  let transaction
   try {
-    await financeService.createTransaction(
+    transaction = await financeService.createTransaction(
       validated.data,
       membership.organizationId
     )
@@ -49,6 +52,17 @@ export async function createTransaction(
         error instanceof Error
           ? error.message
           : "Não foi possível criar a transação.",
+    }
+  }
+
+  if (transaction.type === "INCOME") {
+    try {
+      await notificationsService.notifyPaymentReceived(
+        membership.organizationId,
+        transaction.id
+      )
+    } catch {
+      // A falha ao registrar a notificação nunca deve bloquear a transação.
     }
   }
 
@@ -98,8 +112,7 @@ export async function updateTransaction(
 }
 
 export async function deleteTransaction(id: string) {
-  const membership = await getActiveMembership()
-  if (!membership) redirect("/login")
+  const membership = await requireRole("ADMIN")
 
   await financeService.deleteTransaction(id, membership.organizationId)
 
