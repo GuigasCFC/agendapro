@@ -1,5 +1,7 @@
 import { format } from "date-fns"
+import { CalendarClock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface UpcomingAppointmentsProps {
   appointments: {
@@ -21,9 +23,7 @@ export function UpcomingAppointments({
           <CardTitle>Próximos agendamentos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
-            Nenhum agendamento futuro.
-          </div>
+          <EmptyState icon={CalendarClock} title="Nenhum agendamento futuro." />
         </CardContent>
       </Card>
     )
@@ -35,20 +35,26 @@ export function UpcomingAppointments({
         <CardTitle>Próximos agendamentos</CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2">
         {appointments.map((appointment) => (
           <div
             key={appointment.id}
-            className="flex items-center justify-between rounded-lg border p-3"
+            className="flex items-center gap-3 rounded-lg border border-transparent p-3 transition-colors hover:border-border hover:bg-muted/50"
           >
-            <div>
-              <p className="font-medium">{appointment.customer.name}</p>
-              <p className="text-sm text-muted-foreground">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+              {appointment.customer.name.charAt(0).toUpperCase()}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium text-foreground">
+                {appointment.customer.name}
+              </p>
+              <p className="truncate text-sm text-muted-foreground">
                 {appointment.service.name} · {appointment.employee.name}
               </p>
             </div>
 
-            <span className="text-sm font-semibold">
+            <span className="shrink-0 font-mono text-sm font-semibold text-foreground">
               {format(appointment.startsAt, "dd/MM HH:mm")}
             </span>
           </div>

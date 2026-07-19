@@ -6,34 +6,30 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/format"
 
-interface RevenueChartProps {
+interface AppointmentsChartProps {
   data: {
-    month: Date
-    income: number
-    expense: number
+    date: Date
+    count: number
   }[]
 }
 
-export function RevenueChart({ data }: RevenueChartProps) {
+export function AppointmentsChart({ data }: AppointmentsChartProps) {
   const chartData = data.map((item) => ({
-    label: format(item.month, "MMM", { locale: ptBR }),
-    Receita: item.income,
-    Despesa: item.expense,
+    label: format(item.date, "EEE", { locale: ptBR }),
+    Agendamentos: item.count,
   }))
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Receitas x Despesas</CardTitle>
+        <CardTitle>Agendamentos dos últimos 7 dias</CardTitle>
       </CardHeader>
 
       <CardContent>
@@ -41,9 +37,8 @@ export function RevenueChart({ data }: RevenueChartProps) {
           <BarChart
             data={chartData}
             barCategoryGap="24%"
-            barGap={4}
             role="img"
-            aria-label="Gráfico de barras: receitas e despesas dos últimos 6 meses"
+            aria-label="Gráfico de barras: agendamentos dos últimos 7 dias"
           >
             <CartesianGrid
               vertical={false}
@@ -63,12 +58,12 @@ export function RevenueChart({ data }: RevenueChartProps) {
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value: number) => formatCurrency(value, { maximumFractionDigits: 0 })}
-              width={90}
+              allowDecimals={false}
+              width={32}
             />
             <Tooltip
               cursor={{ fill: "var(--muted)" }}
-              formatter={(value) => formatCurrency(Number(value), { maximumFractionDigits: 0 })}
+              formatter={(value) => [String(value), "Agendamentos"]}
               contentStyle={{
                 backgroundColor: "var(--popover)",
                 borderColor: "var(--border)",
@@ -77,16 +72,9 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 color: "var(--popover-foreground)",
               }}
             />
-            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
             <Bar
-              dataKey="Receita"
-              fill="var(--color-chart-1)"
-              radius={[6, 6, 0, 0]}
-              maxBarSize={28}
-            />
-            <Bar
-              dataKey="Despesa"
-              fill="var(--color-chart-2)"
+              dataKey="Agendamentos"
+              fill="var(--color-chart-3)"
               radius={[6, 6, 0, 0]}
               maxBarSize={28}
             />
