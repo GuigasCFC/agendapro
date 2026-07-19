@@ -22,7 +22,12 @@ export const getCurrentUser = cache(async () => {
   const authUser = await requireSession()
   return db.user.findUnique({
     where: { id: authUser.id },
-    include: { memberships: { include: { organization: true } } },
+    include: {
+      memberships: {
+        include: { organization: true },
+        orderBy: { createdAt: "asc" },
+      },
+    },
   })
 })
 
