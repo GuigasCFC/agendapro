@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useActionState } from "react"
 import { format } from "date-fns"
 import {
@@ -58,10 +59,24 @@ export function AppointmentForm({
 
       <div className="space-y-1">
         <label htmlFor="customerId" className="text-sm font-medium">
-          Cliente
+          Cliente <span className="text-destructive" aria-hidden="true">*</span>
         </label>
-        <Select name="customerId" defaultValue={appointment?.customerId}>
-          <SelectTrigger id="customerId" className="w-full">
+        <Select
+          name="customerId"
+          defaultValue={appointment?.customerId}
+          items={customers.map((customer) => ({
+            value: customer.id,
+            label: customer.name,
+          }))}
+        >
+          <SelectTrigger
+            id="customerId"
+            className="w-full"
+            aria-invalid={Boolean(state?.errors?.customerId)}
+            aria-describedby={
+              state?.errors?.customerId ? "customerId-error" : undefined
+            }
+          >
             <SelectValue placeholder="Selecione um cliente" />
           </SelectTrigger>
           <SelectContent>
@@ -73,7 +88,7 @@ export function AppointmentForm({
           </SelectContent>
         </Select>
         {state?.errors?.customerId && (
-          <p className="text-sm text-destructive">
+          <p id="customerId-error" className="text-sm text-destructive">
             {state.errors.customerId[0]}
           </p>
         )}
@@ -81,10 +96,24 @@ export function AppointmentForm({
 
       <div className="space-y-1">
         <label htmlFor="serviceId" className="text-sm font-medium">
-          Serviço
+          Serviço <span className="text-destructive" aria-hidden="true">*</span>
         </label>
-        <Select name="serviceId" defaultValue={appointment?.serviceId}>
-          <SelectTrigger id="serviceId" className="w-full">
+        <Select
+          name="serviceId"
+          defaultValue={appointment?.serviceId}
+          items={services.map((service) => ({
+            value: service.id,
+            label: service.name,
+          }))}
+        >
+          <SelectTrigger
+            id="serviceId"
+            className="w-full"
+            aria-invalid={Boolean(state?.errors?.serviceId)}
+            aria-describedby={
+              state?.errors?.serviceId ? "serviceId-error" : undefined
+            }
+          >
             <SelectValue placeholder="Selecione um serviço" />
           </SelectTrigger>
           <SelectContent>
@@ -96,7 +125,7 @@ export function AppointmentForm({
           </SelectContent>
         </Select>
         {state?.errors?.serviceId && (
-          <p className="text-sm text-destructive">
+          <p id="serviceId-error" className="text-sm text-destructive">
             {state.errors.serviceId[0]}
           </p>
         )}
@@ -104,10 +133,24 @@ export function AppointmentForm({
 
       <div className="space-y-1">
         <label htmlFor="employeeId" className="text-sm font-medium">
-          Funcionário
+          Funcionário <span className="text-destructive" aria-hidden="true">*</span>
         </label>
-        <Select name="employeeId" defaultValue={appointment?.employeeId}>
-          <SelectTrigger id="employeeId" className="w-full">
+        <Select
+          name="employeeId"
+          defaultValue={appointment?.employeeId}
+          items={employees.map((employee) => ({
+            value: employee.id,
+            label: employee.name,
+          }))}
+        >
+          <SelectTrigger
+            id="employeeId"
+            className="w-full"
+            aria-invalid={Boolean(state?.errors?.employeeId)}
+            aria-describedby={
+              state?.errors?.employeeId ? "employeeId-error" : undefined
+            }
+          >
             <SelectValue placeholder="Selecione um funcionário" />
           </SelectTrigger>
           <SelectContent>
@@ -119,16 +162,16 @@ export function AppointmentForm({
           </SelectContent>
         </Select>
         {state?.errors?.employeeId && (
-          <p className="text-sm text-destructive">
+          <p id="employeeId-error" className="text-sm text-destructive">
             {state.errors.employeeId[0]}
           </p>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor="date" className="text-sm font-medium">
-            Data
+            Data <span className="text-destructive" aria-hidden="true">*</span>
           </label>
           <Input
             id="date"
@@ -138,15 +181,19 @@ export function AppointmentForm({
               appointment ? format(appointment.startsAt, "yyyy-MM-dd") : undefined
             }
             required
+            aria-invalid={Boolean(state?.errors?.date)}
+            aria-describedby={state?.errors?.date ? "date-error" : undefined}
           />
           {state?.errors?.date && (
-            <p className="text-sm text-destructive">{state.errors.date[0]}</p>
+            <p id="date-error" className="text-sm text-destructive">
+              {state.errors.date[0]}
+            </p>
           )}
         </div>
 
         <div className="space-y-1">
           <label htmlFor="time" className="text-sm font-medium">
-            Horário
+            Horário <span className="text-destructive" aria-hidden="true">*</span>
           </label>
           <Input
             id="time"
@@ -156,9 +203,13 @@ export function AppointmentForm({
               appointment ? format(appointment.startsAt, "HH:mm") : undefined
             }
             required
+            aria-invalid={Boolean(state?.errors?.time)}
+            aria-describedby={state?.errors?.time ? "time-error" : undefined}
           />
           {state?.errors?.time && (
-            <p className="text-sm text-destructive">{state.errors.time[0]}</p>
+            <p id="time-error" className="text-sm text-destructive">
+              {state.errors.time[0]}
+            </p>
           )}
         </div>
       </div>
@@ -170,8 +221,14 @@ export function AppointmentForm({
         <Select
           name="status"
           defaultValue={appointment?.status ?? "SCHEDULED"}
+          items={STATUS_OPTIONS}
         >
-          <SelectTrigger id="status" className="w-full">
+          <SelectTrigger
+            id="status"
+            className="w-full"
+            aria-invalid={Boolean(state?.errors?.status)}
+            aria-describedby={state?.errors?.status ? "status-error" : undefined}
+          >
             <SelectValue placeholder="Selecione o status" />
           </SelectTrigger>
           <SelectContent>
@@ -183,7 +240,9 @@ export function AppointmentForm({
           </SelectContent>
         </Select>
         {state?.errors?.status && (
-          <p className="text-sm text-destructive">{state.errors.status[0]}</p>
+          <p id="status-error" className="text-sm text-destructive">
+            {state.errors.status[0]}
+          </p>
         )}
       </div>
 
@@ -191,9 +250,17 @@ export function AppointmentForm({
         <label htmlFor="notes" className="text-sm font-medium">
           Observações
         </label>
-        <Textarea id="notes" name="notes" defaultValue={appointment?.notes ?? ""} />
+        <Textarea
+          id="notes"
+          name="notes"
+          defaultValue={appointment?.notes ?? ""}
+          aria-invalid={Boolean(state?.errors?.notes)}
+          aria-describedby={state?.errors?.notes ? "notes-error" : undefined}
+        />
         {state?.errors?.notes && (
-          <p className="text-sm text-destructive">{state.errors.notes[0]}</p>
+          <p id="notes-error" className="text-sm text-destructive">
+            {state.errors.notes[0]}
+          </p>
         )}
       </div>
 
@@ -201,13 +268,18 @@ export function AppointmentForm({
         <p className="text-sm text-destructive">{state.message}</p>
       )}
 
-      <Button type="submit" disabled={pending} className="w-full">
-        {pending
-          ? "Salvando..."
-          : isEditing
-            ? "Salvar alterações"
-            : "Criar agendamento"}
-      </Button>
+      <div className="flex items-center gap-2 pt-2">
+        <Button type="submit" disabled={pending} className="flex-1">
+          {pending
+            ? "Salvando..."
+            : isEditing
+              ? "Salvar alterações"
+              : "Criar agendamento"}
+        </Button>
+        <Button type="button" variant="outline" render={<Link href="/appointments" />}>
+          Cancelar
+        </Button>
+      </div>
     </form>
   )
 }

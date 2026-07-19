@@ -12,10 +12,10 @@ export default async function AppointmentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Agendamentos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight">Agendamentos</h1>
+          <p className="text-sm text-muted-foreground">
             Gerencie os agendamentos da sua empresa.
           </p>
         </div>
@@ -25,7 +25,16 @@ export default async function AppointmentsPage() {
         </Button>
       </div>
 
-      <AppointmentTable appointments={appointments} />
+      <AppointmentTable
+        appointments={appointments.map((appointment) => ({
+          id: appointment.id,
+          startsAt: appointment.startsAt,
+          status: appointment.status,
+          customer: { name: appointment.customer.name },
+          service: { name: appointment.service.name },
+          employee: { name: appointment.employee.name },
+        }))}
+      />
     </div>
   )
 }

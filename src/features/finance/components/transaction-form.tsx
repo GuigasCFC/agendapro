@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useActionState } from "react"
 import { format } from "date-fns"
 import {
@@ -54,10 +55,19 @@ export function TransactionForm({
 
       <div className="space-y-1">
         <label htmlFor="type" className="text-sm font-medium">
-          Tipo
+          Tipo <span className="text-destructive" aria-hidden="true">*</span>
         </label>
-        <Select name="type" defaultValue={transaction?.type ?? "INCOME"}>
-          <SelectTrigger id="type" className="w-full">
+        <Select
+          name="type"
+          defaultValue={transaction?.type ?? "INCOME"}
+          items={TYPE_OPTIONS}
+        >
+          <SelectTrigger
+            id="type"
+            className="w-full"
+            aria-invalid={Boolean(state?.errors?.type)}
+            aria-describedby={state?.errors?.type ? "type-error" : undefined}
+          >
             <SelectValue placeholder="Selecione o tipo" />
           </SelectTrigger>
           <SelectContent>
@@ -69,13 +79,15 @@ export function TransactionForm({
           </SelectContent>
         </Select>
         {state?.errors?.type && (
-          <p className="text-sm text-destructive">{state.errors.type[0]}</p>
+          <p id="type-error" className="text-sm text-destructive">
+            {state.errors.type[0]}
+          </p>
         )}
       </div>
 
       <div className="space-y-1">
         <label htmlFor="amount" className="text-sm font-medium">
-          Valor
+          Valor <span className="text-destructive" aria-hidden="true">*</span>
         </label>
         <Input
           id="amount"
@@ -87,24 +99,32 @@ export function TransactionForm({
             transaction ? String(transaction.amount) : undefined
           }
           required
+          aria-invalid={Boolean(state?.errors?.amount)}
+          aria-describedby={state?.errors?.amount ? "amount-error" : undefined}
         />
         {state?.errors?.amount && (
-          <p className="text-sm text-destructive">{state.errors.amount[0]}</p>
+          <p id="amount-error" className="text-sm text-destructive">
+            {state.errors.amount[0]}
+          </p>
         )}
       </div>
 
       <div className="space-y-1">
         <label htmlFor="category" className="text-sm font-medium">
-          Categoria
+          Categoria <span className="text-destructive" aria-hidden="true">*</span>
         </label>
         <Input
           id="category"
           name="category"
           defaultValue={transaction?.category}
           required
+          aria-invalid={Boolean(state?.errors?.category)}
+          aria-describedby={
+            state?.errors?.category ? "category-error" : undefined
+          }
         />
         {state?.errors?.category && (
-          <p className="text-sm text-destructive">
+          <p id="category-error" className="text-sm text-destructive">
             {state.errors.category[0]}
           </p>
         )}
@@ -112,7 +132,7 @@ export function TransactionForm({
 
       <div className="space-y-1">
         <label htmlFor="occurredAt" className="text-sm font-medium">
-          Data
+          Data <span className="text-destructive" aria-hidden="true">*</span>
         </label>
         <Input
           id="occurredAt"
@@ -124,9 +144,13 @@ export function TransactionForm({
               : format(new Date(), "yyyy-MM-dd")
           }
           required
+          aria-invalid={Boolean(state?.errors?.occurredAt)}
+          aria-describedby={
+            state?.errors?.occurredAt ? "occurredAt-error" : undefined
+          }
         />
         {state?.errors?.occurredAt && (
-          <p className="text-sm text-destructive">
+          <p id="occurredAt-error" className="text-sm text-destructive">
             {state.errors.occurredAt[0]}
           </p>
         )}
@@ -139,6 +163,13 @@ export function TransactionForm({
         <Select
           name="customerId"
           defaultValue={transaction?.customerId ?? "none"}
+          items={[
+            { value: "none", label: "Nenhum" },
+            ...customers.map((customer) => ({
+              value: customer.id,
+              label: customer.name,
+            })),
+          ]}
         >
           <SelectTrigger id="customerId" className="w-full">
             <SelectValue placeholder="Nenhum cliente" />
@@ -161,6 +192,13 @@ export function TransactionForm({
         <Select
           name="appointmentId"
           defaultValue={transaction?.appointmentId ?? "none"}
+          items={[
+            { value: "none", label: "Nenhum" },
+            ...appointments.map((appointment) => ({
+              value: appointment.id,
+              label: appointment.label,
+            })),
+          ]}
         >
           <SelectTrigger id="appointmentId" className="w-full">
             <SelectValue placeholder="Nenhum agendamento" />
@@ -184,9 +222,13 @@ export function TransactionForm({
           id="description"
           name="description"
           defaultValue={transaction?.description ?? ""}
+          aria-invalid={Boolean(state?.errors?.description)}
+          aria-describedby={
+            state?.errors?.description ? "description-error" : undefined
+          }
         />
         {state?.errors?.description && (
-          <p className="text-sm text-destructive">
+          <p id="description-error" className="text-sm text-destructive">
             {state.errors.description[0]}
           </p>
         )}
@@ -196,13 +238,18 @@ export function TransactionForm({
         <p className="text-sm text-destructive">{state.message}</p>
       )}
 
-      <Button type="submit" disabled={pending} className="w-full">
-        {pending
-          ? "Salvando..."
-          : isEditing
-            ? "Salvar alterações"
-            : "Criar transação"}
-      </Button>
+      <div className="flex items-center gap-2 pt-2">
+        <Button type="submit" disabled={pending} className="flex-1">
+          {pending
+            ? "Salvando..."
+            : isEditing
+              ? "Salvar alterações"
+              : "Criar transação"}
+        </Button>
+        <Button type="button" variant="outline" render={<Link href="/finance" />}>
+          Cancelar
+        </Button>
+      </div>
     </form>
   )
 }

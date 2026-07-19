@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useActionState } from "react"
 import { createEmployee, updateEmployee } from "@/features/employees/actions"
 import { Button } from "@/components/ui/button"
@@ -28,11 +29,20 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
 
       <div className="space-y-1">
         <label htmlFor="name" className="text-sm font-medium">
-          Nome
+          Nome <span className="text-destructive" aria-hidden="true">*</span>
         </label>
-        <Input id="name" name="name" defaultValue={employee?.name} required />
+        <Input
+          id="name"
+          name="name"
+          defaultValue={employee?.name}
+          required
+          aria-invalid={Boolean(state?.errors?.name)}
+          aria-describedby={state?.errors?.name ? "name-error" : undefined}
+        />
         {state?.errors?.name && (
-          <p className="text-sm text-destructive">{state.errors.name[0]}</p>
+          <p id="name-error" className="text-sm text-destructive">
+            {state.errors.name[0]}
+          </p>
         )}
       </div>
 
@@ -40,13 +50,21 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
         <label htmlFor="role" className="text-sm font-medium">
           Cargo
         </label>
-        <Input id="role" name="role" defaultValue={employee?.role ?? ""} />
+        <Input
+          id="role"
+          name="role"
+          defaultValue={employee?.role ?? ""}
+          aria-invalid={Boolean(state?.errors?.role)}
+          aria-describedby={state?.errors?.role ? "role-error" : undefined}
+        />
         {state?.errors?.role && (
-          <p className="text-sm text-destructive">{state.errors.role[0]}</p>
+          <p id="role-error" className="text-sm text-destructive">
+            {state.errors.role[0]}
+          </p>
         )}
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border p-3">
+      <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 p-3.5">
         <label htmlFor="active" className="text-sm font-medium">
           Funcionário ativo
         </label>
@@ -61,13 +79,18 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
         <p className="text-sm text-destructive">{state.message}</p>
       )}
 
-      <Button type="submit" disabled={pending} className="w-full">
-        {pending
-          ? "Salvando..."
-          : isEditing
-            ? "Salvar alterações"
-            : "Criar funcionário"}
-      </Button>
+      <div className="flex items-center gap-2 pt-2">
+        <Button type="submit" disabled={pending} className="flex-1">
+          {pending
+            ? "Salvando..."
+            : isEditing
+              ? "Salvar alterações"
+              : "Criar funcionário"}
+        </Button>
+        <Button type="button" variant="outline" render={<Link href="/employees" />}>
+          Cancelar
+        </Button>
+      </div>
     </form>
   )
 }

@@ -13,17 +13,31 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex h-screen overflow-hidden bg-muted/30">
+      <a
+        href="#main-content"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-primary focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-primary-foreground"
+      >
+        Pular para o conteúdo
+      </a>
+
       <Sidebar organizationName={membership.organization.name} />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header
+          organizationName={membership.organization.name}
           userName={user.name}
           userEmail={user.email}
           role={membership.role}
         />
 
-        <main className="flex-1 p-6">{children}</main>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto p-4 outline-none md:p-6"
+        >
+          {children}
+        </main>
       </div>
     </div>
   )

@@ -12,10 +12,10 @@ export default async function FinancePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Financeiro</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight">Financeiro</h1>
+          <p className="text-sm text-muted-foreground">
             Gerencie as receitas e despesas da sua empresa.
           </p>
         </div>

@@ -10,13 +10,15 @@ import {
   Scissors,
   UserCog,
   Wallet,
+  Bell,
   BarChart3,
   Settings,
+  CreditCard,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const menuItems = [
+export const menuItems = [
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -48,6 +50,11 @@ const menuItems = [
     icon: Wallet,
   },
   {
+    title: "Notifications",
+    href: "/notifications",
+    icon: Bell,
+  },
+  {
     title: "Reports",
     href: "/reports",
     icon: BarChart3,
@@ -56,6 +63,11 @@ const menuItems = [
     title: "Settings",
     href: "/settings",
     icon: Settings,
+  },
+  {
+    title: "Subscription",
+    href: "/subscription",
+    icon: CreditCard,
   },
 ];
 
@@ -67,40 +79,47 @@ export function Sidebar({ organizationName }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-background">
-      <div className="border-b p-6">
-        <h1 className="text-2xl font-bold tracking-tight">
+    <aside className="hidden h-screen w-64 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar md:flex">
+      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+        <h1 className="text-lg font-semibold tracking-tight text-sidebar-foreground">
           Agenda<span className="text-primary">Pro</span>
         </h1>
+      </div>
 
-        <p className="mt-1 text-sm text-muted-foreground">
+      <div className="border-b border-sidebar-border px-6 py-3">
+        <p className="truncate text-sm font-medium text-sidebar-foreground/80">
           {organizationName}
         </p>
       </div>
 
-      <nav className="flex-1 space-y-2 p-4">
+      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-3">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const isActive = pathname === item.href;
 
           return (
             <Link
               key={item.title}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                pathname === item.href
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon
+                className="h-[18px] w-[18px]"
+                strokeWidth={isActive ? 2.25 : 2}
+              />
               {item.title}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t p-4">
+      <div className="border-t border-sidebar-border p-4">
         <p className="text-center text-xs text-muted-foreground">
           AgendaPro v1.0
         </p>

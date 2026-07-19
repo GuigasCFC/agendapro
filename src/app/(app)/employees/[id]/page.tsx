@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { getActiveMembership } from "@/lib/auth/dal"
 import { getEmployee } from "@/features/employees/services"
 import { EmployeeForm } from "@/features/employees/components/employee-form"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface EditEmployeePageProps {
   params: Promise<{ id: string }>
@@ -21,13 +22,17 @@ export default async function EditEmployeePage({ params }: EditEmployeePageProps
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Editar funcionário</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">Editar funcionário</h1>
+        <p className="text-sm text-muted-foreground">
           Atualize os dados do funcionário.
         </p>
       </div>
 
-      <EmployeeForm employee={employee} />
+      <Card>
+        <CardContent>
+          <EmployeeForm employee={employee} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

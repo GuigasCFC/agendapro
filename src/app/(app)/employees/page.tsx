@@ -12,10 +12,10 @@ export default async function EmployeesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Funcionários</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight">Funcionários</h1>
+          <p className="text-sm text-muted-foreground">
             Gerencie os funcionários da sua empresa.
           </p>
         </div>

@@ -5,6 +5,7 @@ import { getTransaction } from "@/features/finance/services"
 import { listCustomers } from "@/features/customers/services"
 import { listAppointments } from "@/features/appointments/services"
 import { TransactionForm } from "@/features/finance/components/transaction-form"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface EditTransactionPageProps {
   params: Promise<{ id: string }>
@@ -30,32 +31,36 @@ export default async function EditTransactionPage({
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Editar transação</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">Editar transação</h1>
+        <p className="text-sm text-muted-foreground">
           Atualize os dados da transação.
         </p>
       </div>
 
-      <TransactionForm
-        transaction={{
-          id: transaction.id,
-          type: transaction.type,
-          amount: transaction.amount.toString(),
-          category: transaction.category,
-          description: transaction.description,
-          occurredAt: transaction.occurredAt,
-          customerId: transaction.customerId,
-          appointmentId: transaction.appointmentId,
-        }}
-        customers={customers.map(({ id, name }) => ({ id, name }))}
-        appointments={appointments.map((appointment) => ({
-          id: appointment.id,
-          label: `${appointment.customer.name} - ${format(
-            appointment.startsAt,
-            "dd/MM/yyyy HH:mm"
-          )}`,
-        }))}
-      />
+      <Card>
+        <CardContent>
+          <TransactionForm
+            transaction={{
+              id: transaction.id,
+              type: transaction.type,
+              amount: transaction.amount.toString(),
+              category: transaction.category,
+              description: transaction.description,
+              occurredAt: transaction.occurredAt,
+              customerId: transaction.customerId,
+              appointmentId: transaction.appointmentId,
+            }}
+            customers={customers.map(({ id, name }) => ({ id, name }))}
+            appointments={appointments.map((appointment) => ({
+              id: appointment.id,
+              label: `${appointment.customer.name} - ${format(
+                appointment.startsAt,
+                "dd/MM/yyyy HH:mm"
+              )}`,
+            }))}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }

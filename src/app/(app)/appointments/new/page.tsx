@@ -3,6 +3,7 @@ import { listCustomers } from "@/features/customers/services"
 import { listServices } from "@/features/services/services"
 import { listEmployees } from "@/features/employees/services"
 import { AppointmentForm } from "@/features/appointments/components/appointment-form"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default async function NewAppointmentPage() {
   const membership = await getActiveMembership()
@@ -17,17 +18,21 @@ export default async function NewAppointmentPage() {
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Novo agendamento</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">Novo agendamento</h1>
+        <p className="text-sm text-muted-foreground">
           Cadastre um novo agendamento da sua empresa.
         </p>
       </div>
 
-      <AppointmentForm
-        customers={customers.map(({ id, name }) => ({ id, name }))}
-        services={services.map(({ id, name }) => ({ id, name }))}
-        employees={employees.map(({ id, name }) => ({ id, name }))}
-      />
+      <Card>
+        <CardContent>
+          <AppointmentForm
+            customers={customers.map(({ id, name }) => ({ id, name }))}
+            services={services.map(({ id, name }) => ({ id, name }))}
+            employees={employees.map(({ id, name }) => ({ id, name }))}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }

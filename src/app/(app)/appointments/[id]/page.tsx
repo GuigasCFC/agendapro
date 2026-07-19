@@ -5,6 +5,7 @@ import { listCustomers } from "@/features/customers/services"
 import { listServices } from "@/features/services/services"
 import { listEmployees } from "@/features/employees/services"
 import { AppointmentForm } from "@/features/appointments/components/appointment-form"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface EditAppointmentPageProps {
   params: Promise<{ id: string }>
@@ -31,18 +32,22 @@ export default async function EditAppointmentPage({
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Editar agendamento</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">Editar agendamento</h1>
+        <p className="text-sm text-muted-foreground">
           Atualize os dados do agendamento.
         </p>
       </div>
 
-      <AppointmentForm
-        appointment={appointment}
-        customers={customers.map(({ id, name }) => ({ id, name }))}
-        services={services.map(({ id, name }) => ({ id, name }))}
-        employees={employees.map(({ id, name }) => ({ id, name }))}
-      />
+      <Card>
+        <CardContent>
+          <AppointmentForm
+            appointment={appointment}
+            customers={customers.map(({ id, name }) => ({ id, name }))}
+            services={services.map(({ id, name }) => ({ id, name }))}
+            employees={employees.map(({ id, name }) => ({ id, name }))}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }
