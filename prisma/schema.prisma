@@ -29,6 +29,48 @@ enum TransactionType {
   EXPENSE
 }
 
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum NotificationType {
+  APPOINTMENT_CREATED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_REMINDER
+  APPOINTMENT_CANCELLED
+  PAYMENT_RECEIVED
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIAL
+  EXPIRED
+  CANCELED
+}
+
 model User {
   id        String   @id
   email     String   @unique
@@ -43,18 +85,38 @@ model User {
 }
 
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  tradeName              String?
+  contactEmail           String?
+  phone                  String?
+  whatsapp               String?
+  website                String?
+  addressLine            String?
+  city                   String?
+  state                  String?
+  zipCode                String?
+  appointmentSlotMinutes Int?
+  locale                 String?
+  currency               String?
+  timezone               String?
+  dateFormat             String?
+  timeFormat             String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships  Membership[]
-  customers    Customer[]
-  services     Service[]
-  employees    Employee[]
-  appointments Appointment[]
-  transactions Transaction[]
+  memberships   Membership[]
+  customers     Customer[]
+  services      Service[]
+  employees     Employee[]
+  appointments  Appointment[]
+  transactions  Transaction[]
+  businessHours BusinessHours[]
+  notifications Notification[]
+  subscription  Subscription?
 }
 
 model Membership {
@@ -81,9 +143,10 @@ model Customer {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  appointments Appointment[]
-  transactions Transaction[]
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointments  Appointment[]
+  transactions  Transaction[]
+  notifications Notification[]
 
   @@index([organizationId])
 }
@@ -134,11 +197,12 @@ model Appointment {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  customer     Customer      @relation(fields: [customerId], references: [id])
-  service      Service       @relation(fields: [serviceId], references: [id])
-  employee     Employee      @relation(fields: [employeeId], references: [id])
-  transactions Transaction[]
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer      Customer       @relation(fields: [customerId], references: [id])
+  service       Service        @relation(fields: [serviceId], references: [id])
+  employee      Employee       @relation(fields: [employeeId], references: [id])
+  transactions  Transaction[]
+  notifications Notification[]
 
   @@index([organizationId, startsAt])
   @@index([employeeId, startsAt])
@@ -162,4 +226,84 @@ model Transaction {
   customer     Customer?    @relation(fields: [customerId], references: [id])
 
   @@index([organizationId, occurredAt])
+}
+
+model BusinessHours {
+  id             String   @id @default(cuid())
+  organizationId String
+  weekday        Weekday
+  isOpen         Boolean  @default(false)
+  opensAt        String?
+  closesAt       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, weekday])
+  @@index([organizationId])
+}
+
+model Notification {
+  id             String              @id @default(cuid())
+  organizationId String
+  appointmentId  String?
+  customerId     String?
+  channel        NotificationChannel
+  type           NotificationType
+  status         NotificationStatus  @default(PENDING)
+  recipient      String
+  subject        String?
+  message        String
+  sentAt         DateTime?
+  error          String?
+  createdAt      DateTime            @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointment  Appointment? @relation(fields: [appointmentId], references: [id])
+  customer     Customer?    @relation(fields: [customerId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, status])
+  @@index([appointmentId])
+  @@index([customerId])
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  organizationId   String             @unique
+  plan             SubscriptionPlan   @default(FREE)
+  status           SubscriptionStatus @default(TRIAL)
+  trialEndsAt      DateTime?
+  currentPeriodEnd DateTime?
+  canceledAt       DateTime?
+
+  // Dados do gateway de pagamento (Stripe). Atualizados exclusivamente
+  // pelo webhook — nunca escritos otimisticamente fora dele.
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String?
+  stripePriceId        String?
+  subscriptionStatus   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+/**
+ * Registro de eventos de webhook já processados, usado pra idempotência
+ * explícita: antes de processar um evento, o webhook tenta criar um
+ * registro aqui; se a constraint única disparar, o evento já foi
+ * processado (ou está sendo processado agora) e é ignorado com segurança.
+ */
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  eventId     String
+  processedAt DateTime @default(now())
+
+  @@unique([provider, eventId])
 }
