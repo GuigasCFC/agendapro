@@ -12,21 +12,39 @@ export function LoginForm() {
     <form action={action} className="space-y-4">
       <div className="space-y-1">
         <label htmlFor="email" className="text-sm font-medium">
-          E-mail
+          E-mail <span className="text-destructive" aria-hidden="true">*</span>
         </label>
-        <Input id="email" name="email" type="email" required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          required
+          aria-invalid={Boolean(state?.errors?.email)}
+          aria-describedby={state?.errors?.email ? "email-error" : undefined}
+        />
         {state?.errors?.email && (
-          <p className="text-sm text-destructive">{state.errors.email[0]}</p>
+          <p id="email-error" className="text-sm text-destructive">
+            {state.errors.email[0]}
+          </p>
         )}
       </div>
 
       <div className="space-y-1">
         <label htmlFor="password" className="text-sm font-medium">
-          Senha
+          Senha <span className="text-destructive" aria-hidden="true">*</span>
         </label>
-        <Input id="password" name="password" type="password" required />
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          required
+          aria-invalid={Boolean(state?.errors?.password)}
+          aria-describedby={state?.errors?.password ? "password-error" : undefined}
+        />
         {state?.errors?.password && (
-          <p className="text-sm text-destructive">{state.errors.password[0]}</p>
+          <p id="password-error" className="text-sm text-destructive">
+            {state.errors.password[0]}
+          </p>
         )}
       </div>
 
